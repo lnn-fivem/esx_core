@@ -4,7 +4,7 @@ game "gta5"
 description "esx_core optimized by lnn"
 author "LNN (Based on ESX-Framework)"
 lua54 "yes"
-version "1.16.3-lnn"
+version "1.0.0"
 
 shared_scripts {
     "locale.lua",
