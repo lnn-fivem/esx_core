@@ -129,6 +129,6 @@ Config.HealthSampleInterval = 30000 -- Interval in ms to sample live health & ar
 --   DO NOT CHANGE BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING
 -- ============================================================
 Config.EnableDefaultInventory = Config.CustomInventory == false -- Display the default Inventory ( F2 )
-Config.Identifier = GetConvar("esx:identifier", "license")
+Config.Identifier = GetConvar("esx:identifier", "steam")
 
 Config.SpawnVehMaxUpgrades = true -- admin vehicles spawn with max vehicle settings

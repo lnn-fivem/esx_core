@@ -326,41 +326,20 @@ function ESX.IsPlayerLoaded(playerId)
 end
 
 function ESX.TryGetIdentifier(playerId)
-    local fxDk = GetConvarInt("sv_fxdkMode", 0)
-    if fxDk == 1 then
-        return "ESX-DEBUG-LICENCE"
+    if GetConvarInt("sv_fxdkMode", 0) == 1 then
+        return ("%s:ESX-DEBUG"):format(Config.Identifier)
     end
 
-    playerId = tostring(playerId)
-
-    local identifier = GetPlayerIdentifierByType(playerId, Config.Identifier)
-    if not identifier then
-        return nil
-    end
-
-    if Config.Identifier == "license" then
-        return string.gsub(identifier, "^license:", "")
-    end
-
-    return identifier
+    -- Keep the full prefixed identifier (e.g. "steam:110000112345678") as the primary identifier.
+    return GetPlayerIdentifierByType(tostring(playerId), Config.Identifier)
 end
 
 function ESX.GetIdentifier(playerId)
     local identifier = ESX.TryGetIdentifier(playerId)
-    if identifier then
-        return identifier
-    end
 
-    for _, v in ipairs(GetPlayerIdentifiers(playerId)) do
-        if string.match(v, Config.Identifier) then
-            if Config.Identifier == "license" then
-                return string.gsub(v, "license:", "")
-            end
-            return v
-        end
-    end
+    assert(identifier, ("[ESX] GetIdentifier failed: no identifier found for playerId %s with type '%s'"):format(tostring(playerId), Config.Identifier))
 
-    return nil
+    return identifier
 end
 
 ---@param model string|number

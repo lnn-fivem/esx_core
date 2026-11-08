@@ -57,16 +57,20 @@ function CreateExtendedPlayer(playerId, identifier, ssn, group, accounts, invent
     self.weight = weight
     self.maxWeight = Config.MaxWeight
     self.metadata = metadata
+    self.lastPlaytime = self.metadata.lastPlaytime or 0
+    self.paycheckEnabled = true
     self.isDirty = false
     self.admin = Core.IsPlayerAdmin(playerId)
 
-    local idPrefix = ("%s:"):format(Config.Identifier)
-    if string.sub(identifier, 1, #idPrefix) == idPrefix then
-        self.license = identifier
-    elseif string.find(identifier, ":") then
-        self.license = ("%s:%s"):format(Config.Identifier, string.match(identifier, ":(.+)$") or identifier)
+    if Config.Multichar then
+        local startIndex = identifier:find(":", 1)
+        self.license = startIndex and identifier:sub(startIndex + 1) or identifier
     else
-        self.license = ("%s:%s"):format(Config.Identifier, identifier)
+        self.license = identifier
+    end
+
+    if not self.license:find(":", 1) then
+        self.license = ("%s:%s"):format(Config.Identifier, self.license)
     end
 
     local accountsByName = {}
@@ -101,6 +105,14 @@ function CreateExtendedPlayer(playerId, identifier, ssn, group, accounts, invent
 
     function self.isCurrent()
         return ESX.Players[self.source] == self
+    end
+
+    function self.togglePaycheck(toggle)
+        self.paycheckEnabled = toggle
+    end
+
+    function self.isPaycheckEnabled()
+        return self.paycheckEnabled
     end
 
     function self.beginAccountOperation()
