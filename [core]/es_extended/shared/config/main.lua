@@ -1,25 +1,21 @@
--- SPDX-License-Identifier: GPL-3.0-only
--- Copyright (C) 2022-2026 ESX Framework
+-- ============================================================
+--  ESX Core (Optimized by LNN) — Main Configuration
+-- ============================================================
 
 Config = {}
 
-local txAdminLocale = GetConvar("txAdmin-locale", "en")
-local esxLocale = GetConvar("esx:locale", "invalid")
-Config.Locale = (esxLocale ~= "invalid") and esxLocale or (txAdminLocale ~= "custom" and txAdminLocale) or "en"
-
--- When a key is missing from the active locale, fall back to the English string
--- instead of returning a placeholder. Set convar "esx:localeFallback" to "false"
--- to keep the placeholder (useful when authoring a new translation).
-Config.LocaleFallback = GetConvar("esx:localeFallback", "true") ~= "false"
-
--- For ox inventory, this will automatically be adjusted, do not change! For other inventories, leave as false unless specifically instructed to change.
+-- For ox inventory, this will automatically be adjusted, do not change! For other inventories, change to "resource_name"
 Config.CustomInventory = false
+
+Config.Locale = GetConvar("esx:locale", "en")
+-- Fall back to English for keys missing in the active locale. Set to false or
+-- `setr esx:localeFallback false` in server.cfg to surface missing keys instead.
+Config.LocaleFallback = GetConvar("esx:localeFallback", "true") ~= "false"
 
 Config.Accounts = {
     bank = {
         label = TranslateCap("account_bank"),
         round = true,
-        transferable = false,
     },
     black_money = {
         label = TranslateCap("account_black_money"),
@@ -35,9 +31,6 @@ Config.StartingAccountMoney = { bank = 50000 }
 
 Config.StartingInventoryItems = false -- table/false
 
--- Maximum absolute X, Y and Z for player positions. Increase this for custom maps outside the default world.
-Config.PlayerCoordinateLimit = 10000.0
-
 Config.DefaultSpawns = { -- If you want to have more spawn positions and select them randomly uncomment commented code or add more locations
     { x = 222.2027, y = -864.0162, z = 30.2922, heading = 1.0 },
     --{x = 224.9865, y = -865.0871, z = 30.2922, heading = 1.0},
@@ -46,58 +39,64 @@ Config.DefaultSpawns = { -- If you want to have more spawn positions and select 
     --{x = 233.5459, y = -868.2626, z = 30.2922, heading = 1.0}
 }
 
----@deprecated Use `Config.CommandPermissions` as the single source of truth for command ACLs.
---- Kept temporarily for backwards compatibility with external resources that still read `Config.AdminGroups`.
---- Will be removed in ESX 1.15.
+-- Reject saved/live coordinates outside the playable map bounds and fall back to earlier valid coords or DefaultSpawns.
+Config.PlayerCoordinateLimit = 10000.0
+
+-- Ordering goes from lowest to highest permission (user is always lowest and Automatically Added)
 Config.AdminGroups = {
-    ["owner"] = true,
-    ["admin"] = true,
+    "mod",
+    "admin",
 }
 
+--[[
+    Command group permissions (Exact Groups Execution - NOT inherited from Config.AdminGroups)
+
+    - Keys represent command names (without the slash)
+    - Values are arrays of group names allowed to execute the command
+    - Modify as needed to customize command access on your server
+--]]
 Config.CommandPermissions = {
-    ["setcoords"]           = { "owner", "admin" }, -- /setcoords, /tp
-    ["setjob"]              = { "owner", "admin" },
-    ["car"]                 = { "owner", "admin" },
-    ["cardel"]              = { "owner", "admin" }, -- /cardel, /dv
-    ["fix"]                 = { "owner", "admin" }, -- /fix, /repair
-    ["setaccountmoney"]     = { "owner", "admin" },
-    ["giveaccountmoney"]    = { "owner", "admin" },
-    ["removeaccountmoney"]  = { "owner", "admin" },
-    ["giveitem"]            = { "owner", "admin" },
-    ["giveweapon"]          = { "owner", "admin" },
-    ["giveammo"]            = { "owner", "admin" },
-    ["giveweaponcomponent"] = { "owner", "admin" },
-    ["clearall"]            = { "owner", "admin" }, -- /clearall, /clsall
-    ["refreshjobs"]         = { "owner", "admin" },
-    ["refreshitems"]        = { "owner", "admin" },
-    ["clearinventory"]      = { "owner", "admin" },
-    ["clearloadout"]        = { "owner", "admin" },
-    ["setgroup"]            = { "owner", "admin" },
-    ["save"]                = { "owner", "admin" },
-    ["saveall"]             = { "owner", "admin" },
-    ["goto"]                = { "owner", "admin" },
-    ["bring"]               = { "owner", "admin" },
-    ["kill"]                = { "owner", "admin" },
-    ["freeze"]              = { "owner", "admin" },
-    ["unfreeze"]            = { "owner", "admin" },
-    ["setdim"]              = { "owner", "admin" }, -- /setdim, /setbucket
-    ["players"]             = { "owner", "admin" },
-    ["noclip"]              = { "owner", "admin" },
-    ["tpm"]                 = { "owner", "admin" },
-    ["coords"]              = { "owner", "admin" },
-    ["clear"]               = { "user", "admin", "owner" }, -- /clear, /cls
-    ["group"]               = { "user", "admin", "owner" },
-    ["job"]                 = { "user", "admin", "owner" },
-    ["info"]                = { "user", "admin", "owner" },
-    ["playtime"]            = { "user", "admin", "owner" },
-}
-
-Config.ValidCharacterSets = { -- Only enable additional charsets if your server is multilingual. By default everything is false.
-    ['el'] = false, -- Greek
-    ['sr'] = false, -- Cyrillic
-    ['he'] = false, -- Hebrew
-    ['ar'] = false, -- Arabic
-    ['zh-cn'] = false -- Chinese, Japanese, Korean
+    setcoords = { "admin" },
+    tp = { "admin" },
+    setjob = { "admin", "mod" },
+    car = { "admin" },
+    cardel = { "admin", "mod" },
+    dv = { "admin", "mod" },
+    fix = { "admin" },
+    repair = { "admin" },
+    setaccountmoney = { "admin" },
+    giveaccountmoney = { "admin" },
+    removeaccountmoney = { "admin" },
+    giveitem = { "admin" },
+    giveweapon = { "admin" },
+    giveammo = { "admin" },
+    giveweaponcomponent = { "admin" },
+    clear = { "user", "mod", "admin" },
+    cls = { "user", "mod", "admin" },
+    clearall = { "admin" },
+    clsall = { "admin" },
+    refreshjobs = { "admin" },
+    refreshitems = { "admin" },
+    clearinventory = { "admin", "mod" },
+    clearloadout = { "admin", "mod" },
+    setgroup = { "admin" },
+    save = { "admin" },
+    saveall = { "admin" },
+    group = { "user", "mod", "admin" },
+    job = { "user", "mod", "admin" },
+    info = { "user", "mod", "admin" },
+    playtime = { "user", "mod", "admin" },
+    coords = { "admin" },
+    tpm = { "admin", "mod" },
+    ["goto"] = { "admin", "mod" },
+    bring = { "admin", "mod" },
+    kill = { "admin" },
+    freeze = { "admin", "mod" },
+    unfreeze = { "admin", "mod" },
+    noclip = { "admin", "mod" },
+    players = { "admin" },
+    setdim = { "admin" },
+    setbucket = { "admin" },
 }
 
 Config.EnablePaycheck = true -- enable paycheck
@@ -105,14 +104,10 @@ Config.LogPaycheck = false -- Logs paychecks to a nominated Discord channel via 
 Config.EnableSocietyPayouts = false -- pay from the society account that the player is employed at? Requirement: esx_society
 Config.MaxWeight = 24 -- the max inventory weight without a backpack
 Config.PaycheckInterval = 7 * 60000 -- how often to receive paychecks in milliseconds
-Config.PaycheckBatchSize = 100 -- how many players to pay before yielding the server thread
-Config.PaycheckBatchDelay = 250 -- milliseconds to wait between paycheck batches
-Config.PaycheckJitter = 30 * 1000 -- random delay added to each paycheck run to avoid synchronized bursts
-Config.SaveDeathStatus = true -- Save the death status of a player
-Config.EnableDebug = false -- Use Debug options?
-
 Config.DefaultJobDuty = true -- A players default duty status when changing jobs
 Config.OffDutyPaycheckMultiplier = 0.5 -- The multiplier for off duty paychecks. 0.5 = 50% of the on duty paycheck
+
+Config.EnableDebug = false -- Use Debug options?
 
 Config.Multichar = GetResourceState("esx_multicharacter") ~= "missing"
 Config.Identity = true -- Select a character identity data before they have loaded in (this happens by default with multichar)
@@ -120,12 +115,20 @@ Config.DistanceGive = 4.0 -- Max distance when giving items, weapons etc.
 
 Config.AdminLogging = false -- Logs the usage of certain commands by those with group.admin ace permissions (default is false)
 
--------------------------------------
--- DO NOT CHANGE BELOW THIS LINE !!!
--------------------------------------
-if GetResourceState("ox_inventory") ~= "missing" then
-    Config.CustomInventory = "ox"
-end
+-- ============================================================
+--  LNN Optimization Settings (Dirty-Tracking & Batch Save)
+-- ============================================================
+Config.SaveInterval = 5 * 60000 -- Interval in ms to batch-save dirty players (default: 5 minutes)
+Config.SaveBatchSize = 100 -- Number of players per MySQL.prepare.await batch
+Config.SaveSerializeChunk = 50 -- Number of players serialized per server frame before Wait(0)
+Config.SaveProgressMinPlayers = 200 -- Minimum player count to print progress percentages during save
+Config.SaveProgressStep = 20 -- Progress log step percentage
+Config.HealthSampleInterval = 30000 -- Interval in ms to sample live health & armor into metadata (0 to disable)
 
+-- ============================================================
+--   DO NOT CHANGE BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING
+-- ============================================================
 Config.EnableDefaultInventory = Config.CustomInventory == false -- Display the default Inventory ( F2 )
 Config.Identifier = GetConvar("esx:identifier", "license")
+
+Config.SpawnVehMaxUpgrades = true -- admin vehicles spawn with max vehicle settings

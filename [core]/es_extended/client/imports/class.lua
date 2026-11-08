@@ -1,6 +1,3 @@
--- SPDX-License-Identifier: GPL-3.0-only
--- Copyright (C) 2022-2026 ESX Framework
-
 local class = {}
 class.__index = class
 
@@ -15,7 +12,7 @@ function class:new(...)
 	return instance
 end
 
-function Class(body, heritage)
+local function Class(body, heritage)
 	local prototype = body or {}
 	prototype.__index = prototype
 	return setmetatable(prototype, heritage or class)
